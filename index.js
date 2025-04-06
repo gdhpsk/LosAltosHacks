@@ -25,9 +25,30 @@ wss.on("connection", (socket) => {
     socket.on("message", async (m) => {
         try {
             let message = m.toString()
-            console.log(message)
+            if(message == "delete" && socket.chat && socket.reporter) {
+                await fetch("https://thetechtitans.vip/incident", {
+                    method: "DELETE",
+                    headers: {
+                        'content-type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        key: socket.reporter,
+                        id: socket.chat
+                    })
+                })
+                wss.clients.forEach(e => {
+                    console.log(e.reporter, "LMAO")
+                    if (e.chat != socket.chat) return;
+                    e.send(JSON.stringify({ chat_message: "Reporter has deleted this chat", reporter: true}))
+                })
+                return;
+            }
+            if(message == "no_message") {
+                delete socket.chat
+            }
+            // console.log(message)
             let json = JSON.parse(message)
-            console.log(json)
+            // console.log(json)
             if (json.coordinates) {
                 socket.coordinates = json.coordinates
                 // console.log(json)
@@ -48,11 +69,13 @@ wss.on("connection", (socket) => {
                     id: reporter._id,
                     coordinates: location
                 }
-                // console.log(socket.reporter)
+                console.log(socket.reporter)
             } else if (json.report) {
                 if (!socket.reporter) return;
                 if (json.report.status == "approved") {
                     socket.chat = json.report.id.toString()
+                    let {disaster} = await locationSchema.findById(json.report.id.toString(), {disaster: 1})
+                    json.report.disaster = disaster
                     wss.clients.forEach(s => {
                         let report_cords = json.report.coordinates
                         let user_cords = s.coordinates
@@ -61,13 +84,12 @@ wss.on("connection", (socket) => {
                         let within = isWithinRadius(report_cords.latitude, report_cords.longitude, user_cords.latitude, user_cords.longitude, process.env.radius)
                         if (within) {
                             s.send(`disaster_${json.report.disaster}_${json.report.id.toString()}`)
+                            s.chat = json.report.id.toString()
+
+                            // console.log(s.reporter, "LOL")
                         }
                     })
                 }
-            } else if (json.chat) {
-                let exists = await locationSchema.exists(json.chat)
-                if (!exists) return;
-                socket.chat = json.chat
             } else if (json.chat_message) {
                 let exists = await locationSchema.exists(socket.chat)
                 if (!exists) {
@@ -75,8 +97,9 @@ wss.on("connection", (socket) => {
                     return;
                 }
                 wss.clients.forEach(e => {
+                    console.log(e.reporter, "LMAO")
                     if (e.chat != socket.chat) return;
-                    e.send(JSON.stringify({ chat_message: json.chat_message, reporter: !!socket.reporter }))
+                    e.send(JSON.stringify({ chat_message: json.chat_message, reporter: socket?.reporter?.id ? true : false}))
                 })
             }
         } catch (_) {
@@ -86,7 +109,6 @@ wss.on("connection", (socket) => {
 })
 
 app.use(cors())
-app.use(express.static("frontend"))
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
