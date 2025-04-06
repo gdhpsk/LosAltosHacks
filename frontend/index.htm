@@ -24,7 +24,7 @@
         async function submit(type) {
             let id = `${type}_cords`
             let text = document.getElementById(id).value
-            let cords = text.split(", ").map(e => parseInt(e))
+            let cords = text.split(", ").map(e => parseFloat(e))
             if(type == "api") {
                 let master_key = localStorage.getItem("master_key")
                 let req = await fetch("https://thetechtitans.vip/api-key", {
