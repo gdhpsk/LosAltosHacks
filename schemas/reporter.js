@@ -22,6 +22,10 @@ const schema = new mongoose.Schema({
                 }
             }
         }
+    },
+    author: {
+        type: mongoose.Types.ObjectId,
+        required: true
     }
 })
 module.exports = mongoose.model("reporter", schema)
