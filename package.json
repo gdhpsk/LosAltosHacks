@@ -1,0 +1,24 @@
+{
+  "name": "losaltoshacks",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "generate": "node --env-file=.env gen_keys.js",
+    "start": "node --env-file=.env index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "bcrypt": "^5.1.1",
+    "express": "^5.1.0",
+    "mongoose": "^8.13.2",
+    "ws": "^8.18.1"
+  },
+  "devDependencies": {
+    "@types/bcrypt": "^5.0.2",
+    "@types/express": "^5.0.1"
+  }
+}

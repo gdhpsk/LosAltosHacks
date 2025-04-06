@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTTP interface for Disasters</title>
+    <script>
+        function save(input) {
+            localStorage.setItem("master_key", input)
+            document.getElementById("master_text").innerText = "Saved."
+            setTimeout(() => {
+                document.getElementById("master").value = ""
+            document.getElementById("master_text").innerText = ""
+            }, 3000)
+        }
+        function saveAPI(input) {
+            localStorage.setItem("api_key", input)
+            document.getElementById("api_text").innerText = "Saved."
+            setTimeout(() => {
+                document.getElementById("api").value = ""
+            document.getElementById("api_text").innerText = ""
+            }, 3000)
+        }
+        async function submit(type) {
+            let id = `${type}_cords`
+            let text = document.getElementById(id).value
+            let cords = text.split(", ").map(e => parseInt(e))
+            if(type == "api") {
+                let master_key = localStorage.getItem("master_key")
+                let req = await fetch("https://thetechtitans.vip/api-key", {
+                    method: "POST",
+                    headers: {
+                        'Content-Type': "application/json"
+                    },
+                    body: JSON.stringify({
+                        key: master_key,
+                        longitude: cords[0],
+                        latitude: cords[1]
+                    })
+                })
+                let json = await req.json()
+                document.getElementById(`${id}_text`).innerText = json.key
+            } else {
+                let api_key = localStorage.getItem("api_key")
+                let req = await fetch("https://thetechtitans.vip/reporter", {
+                    method: "POST",
+                    headers: {
+                        'Content-Type': "application/json"
+                    },
+                    body: JSON.stringify({
+                        key: api_key,
+                        longitude: cords[0],
+                        latitude: cords[1]
+                    })
+                })
+                let json = await req.json()
+                document.getElementById(`${id}_text`).innerText = json.id
+            }
+        }
+    </script>
+</head>
+<body>
+    <div style="display: grid; place-items: center; width: 100%; height: 100%">
+        <div style="display: flex">
+            <p>Input Master Key: </p>
+            <input oninput="save(this.value)" id="master"/>
+        </div>
+        <p id="master_text"></p>
+        <br><br>
+        <div style="display: flex">
+            <p>Input API Key: </p>
+            <input oninput="saveAPI(this.value)" id="api"/>
+        </div>
+        <p id="api_text"></p>
+        <br>
+        <div style="display: flex">
+            <p>coordinates for API Key (Longitude, Latitude): </p>
+            <input id="api_cords"/>
+            <button onclick="submit('api')">Save</button>
+        </div>
+        <p id="api_cords_text"></p>
+        <br><br>
+        <div style="display: flex">
+            <p>coordinates for reporter (Longitude, Latitude): </p>
+            <input id="reporter_cords"/>
+            <button onclick="submit('reporter')">Save</button>
+        </div>
+        <p id="reporter_cords_text"></p>
+    </div>
+</body>
+</html>
